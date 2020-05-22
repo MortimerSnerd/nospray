@@ -194,6 +194,17 @@ typedef enum
 } OSPFrameBufferFormat;
 
 // OSPRay channel constants for Frame Buffer (can be OR'ed together)
+#ifdef C2NIM
+  #@
+type OSPFrameBufferChannel* = int32
+@#
+  #define OSP_FB_COLOR (1 << 0)
+  #define OSP_FB_DEPTH  (1 << 1)
+  #define OSP_FB_ACCUM  (1 << 2)
+  #define OSP_FB_VARIANCE  (1 << 3)
+  #define OSP_FB_NORMAL  (1 << 4)
+  #define OSP_FB_ALBEDO  (1 << 5)
+#else
 typedef enum
 {
   OSP_FB_COLOR = (1 << 0),
@@ -203,6 +214,7 @@ typedef enum
   OSP_FB_NORMAL = (1 << 4), // in world-space
   OSP_FB_ALBEDO = (1 << 5)
 } OSPFrameBufferChannel;
+#endif
 
 // OSPRay events which can be waited on via ospWait()
 typedef enum

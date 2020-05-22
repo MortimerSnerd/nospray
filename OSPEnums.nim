@@ -95,12 +95,14 @@ type
 
 ##  OSPRay channel constants for Frame Buffer (can be OR'ed together)
 
-type
-  OSPFrameBufferChannel* = enum
-    OSP_FB_COLOR = (1 shl 0), OSP_FB_DEPTH = (1 shl 1), OSP_FB_ACCUM = (1 shl 2),
-    OSP_FB_VARIANCE = (1 shl 3), OSP_FB_NORMAL = (1 shl 4), ##  in world-space
-    OSP_FB_ALBEDO = (1 shl 5)
-
+type OSPFrameBufferChannel* = int32
+const
+  OSP_FB_COLOR* = (1 shl 0)
+  OSP_FB_DEPTH* = (1 shl 1)
+  OSP_FB_ACCUM* = (1 shl 2)
+  OSP_FB_VARIANCE* = (1 shl 3)
+  OSP_FB_NORMAL* = (1 shl 4)
+  OSP_FB_ALBEDO* = (1 shl 5)
 
 ##  OSPRay events which can be waited on via ospWait()
 
