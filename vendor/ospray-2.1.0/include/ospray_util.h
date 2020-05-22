@@ -5,6 +5,17 @@
 
 #include "ospray.h"
 
+#ifdef C2NIM
+    #dynlib ospraydll
+    #if defined(windows)
+      #define ospraydll "ospray.dll"
+    #else
+      #define ospraydll "libospray.so"
+    #endif
+    #def OSP_DEFAULT_VAL(a)
+    #def OSPRAY_INTERFACE 
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

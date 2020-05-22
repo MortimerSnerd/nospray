@@ -3,44 +3,54 @@
 
 #pragma once
 
-#ifndef NULL
-#if __cplusplus >= 201103L
-#define NULL nullptr
-#else
-#define NULL 0
-#endif
-#endif
+#ifndef C2NIM
+    #ifndef NULL
+    #if __cplusplus >= 201103L
+    #define NULL nullptr
+    #else
+    #define NULL 0
+    #endif
+    #endif
 
-#include <stdint.h>
-#include <sys/types.h>
+    #include <stdint.h>
+    #include <sys/types.h>
+    #include "OSPEnums.h"
 
-#include "OSPEnums.h"
+    #ifdef _WIN32
+    #ifdef ospray_EXPORTS
+    #define OSPRAY_INTERFACE __declspec(dllexport)
+    #else
+    #define OSPRAY_INTERFACE __declspec(dllimport)
+    #endif
+    #else
+    #define OSPRAY_INTERFACE
+    #endif
 
-#ifdef _WIN32
-#ifdef ospray_EXPORTS
-#define OSPRAY_INTERFACE __declspec(dllexport)
-#else
-#define OSPRAY_INTERFACE __declspec(dllimport)
-#endif
-#else
-#define OSPRAY_INTERFACE
-#endif
+    #ifdef __GNUC__
+        #define OSP_DEPRECATED __attribute__((deprecated))
+    #elif defined(_MSC_VER)
+        #define OSP_DEPRECATED __declspec(deprecated)
+    #else
+        #define OSP_DEPRECATED
+    #endif
 
-#ifdef __GNUC__
-#define OSP_DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define OSP_DEPRECATED __declspec(deprecated)
-#else
-#define OSP_DEPRECATED
-#endif
-
-#ifdef __cplusplus
+    #ifdef __cplusplus
 // C++ DOES support default initializers
-#define OSP_DEFAULT_VAL(a) = a
-#else
+        #define OSP_DEFAULT_VAL(a) = a
+    #else
 /* C99 does NOT support default initializers, so we use this macro
    to define them away */
-#define OSP_DEFAULT_VAL(a)
+        #define OSP_DEFAULT_VAL(a)
+    #endif
+#else
+    #dynlib ospraydll
+    #if defined(windows)
+      #define ospraydll "ospray.dll"
+    #else
+      #define ospraydll "libospray.so"
+    #endif
+    #def OSP_DEFAULT_VAL(a)
+    #def OSPRAY_INTERFACE 
 #endif
 
 // Give OSPRay handle types a concrete defintion to enable C++ type checking
@@ -131,10 +141,42 @@ typedef void _OSPManagedObject;
    OSPGeometry can still be passed to a function that expects a
    OSPObject, etc. */
 typedef _OSPManagedObject *OSPManagedObject, *OSPCamera, *OSPData,
-    *OSPFrameBuffer, *OSPFuture, *OSPGeometricModel, *OSPGeometry, *OSPGroup,
-    *OSPImageOperation, *OSPInstance, *OSPLight, *OSPMaterial, *OSPObject,
-    *OSPRenderer, *OSPTexture, *OSPTransferFunction, *OSPVolume,
-    *OSPVolumetricModel, *OSPWorld;
+*OSPFrameBuffer, *OSPFuture, *OSPGeometricModel, *OSPGeometry, *OSPGroup,
+*OSPImageOperation, *OSPInstance, *OSPLight, *OSPMaterial, *OSPObject,
+*OSPRenderer, *OSPTexture, *OSPTransferFunction, *OSPVolume,
+*OSPVolumetricModel, *OSPWorld;
+#endif
+
+#ifdef C2NIM
+#@
+import OSPEnums
+export OSPEnums
+type
+    OSPDevice* = distinct pointer
+    OSPManagedObject* = object of RootObj
+    OSPCamera* = object of OSPManagedObject
+    OSPData* = object of OSPManagedObject
+    OSPFrameBuffer* = object of OSPManagedObject
+    OSPFuture* = object of OSPManagedObject
+    OSPGeometricModel* = object of OSPManagedObject
+    OSPGeometry* = object of OSPManagedObject
+    OSPGroup* = object of OSPManagedObject
+    OSPImageOperation* = object of OSPManagedObject
+    OSPInstance* = object of OSPManagedObject
+    OSPLight* = object of OSPManagedObject
+    OSPMaterial* = object of OSPManagedObject
+    OSPObject* = object of OSPManagedObject
+    OSPRenderer* = object of OSPManagedObject
+    OSPTexture* = object of OSPManagedObject
+    OSPTransferFunction* = object of OSPManagedObject
+    OSPVolume* = object of OSPManagedObject
+    OSPVolumetricModel* = object of OSPManagedObject
+    OSPWorld* = object of OSPManagedObject
+    int64_t* = int64
+    uint64_t* = uint64
+    uint32_t* = uint32
+    int32_t* = int32
+@#
 #endif
 
 #ifdef __cplusplus

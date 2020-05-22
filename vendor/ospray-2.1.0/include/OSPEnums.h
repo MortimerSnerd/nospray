@@ -8,9 +8,6 @@
 // Log levels which can be set on a driver via "logLevel" parameter or
 // "OSPRAY_LOG_LEVEL" environment variable
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   OSP_LOG_DEBUG = 1,
   OSP_LOG_INFO = 2,
@@ -21,9 +18,6 @@ typedef enum
 
 // enum representing different device properties
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   OSP_DEVICE_VERSION = 0,
   OSP_DEVICE_VERSION_MAJOR = 1,
@@ -34,9 +28,6 @@ typedef enum
 
 // An enum type that represensts the different data types represented in OSPRay
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   // Object reference type.
   OSP_DEVICE = 100,
@@ -149,9 +140,6 @@ typedef enum
 
 // OSPRay format constants for Texture creation
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   OSP_TEXTURE_RGBA8,
   OSP_TEXTURE_SRGBA,
@@ -174,9 +162,6 @@ typedef enum
 
 // Filter modes that can be set on 'texture2d' type OSPTexture
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   OSP_TEXTURE_FILTER_BILINEAR = 0, // default bilinear interpolation
   OSP_TEXTURE_FILTER_NEAREST // use nearest-neighbor interpolation
@@ -184,9 +169,6 @@ typedef enum
 
 // Error codes returned by various API and callback functions
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   OSP_NO_ERROR = 0, // No error has been recorded
   OSP_UNKNOWN_ERROR = 1, // An unknown error has occurred
@@ -203,9 +185,6 @@ typedef enum
 
 // OSPRay format constants for Frame Buffer creation
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   OSP_FB_NONE, // framebuffer will not be mapped by application
   OSP_FB_RGBA8, // one dword per pixel: rgb+alpha, each one byte
@@ -216,9 +195,6 @@ typedef enum
 
 // OSPRay channel constants for Frame Buffer (can be OR'ed together)
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   OSP_FB_COLOR = (1 << 0),
   OSP_FB_DEPTH = (1 << 1),
@@ -230,9 +206,6 @@ typedef enum
 
 // OSPRay events which can be waited on via ospWait()
 typedef enum
-#if __cplusplus >= 201103L
-    : uint32_t
-#endif
 {
   OSP_NONE_FINISHED = 0,
   OSP_WORLD_RENDERED = 10,
@@ -244,9 +217,6 @@ typedef enum
 // OSPRay cell types definition for unstructured volumes, values are set to
 // match VTK
 typedef enum
-#if __cplusplus >= 201103L
-    : uint8_t
-#endif
 {
   OSP_TETRAHEDRON = 10,
   OSP_HEXAHEDRON = 12,
@@ -257,9 +227,6 @@ typedef enum
 
 // OSPRay PerspectiveCamera stereo image modes
 typedef enum
-#if __cplusplus >= 201103L
-    : uint8_t
-#endif
 {
   OSP_STEREO_NONE,
   OSP_STEREO_LEFT,
@@ -270,9 +237,6 @@ typedef enum
 
 // OSPRay Curves geometry types
 typedef enum
-#if __cplusplus >= 201103L
-    : uint8_t
-#endif
 {
   OSP_ROUND,
   OSP_FLAT,
@@ -282,9 +246,6 @@ typedef enum
 
 // OSPRay Curves geometry bases
 typedef enum
-#if __cplusplus >= 201103L
-    : uint8_t
-#endif
 {
   OSP_LINEAR,
   OSP_BEZIER,
@@ -296,9 +257,6 @@ typedef enum
 
 // AMR Volume rendering methods
 typedef enum
-#if __cplusplus >= 201103L
-    : uint8_t
-#endif
 {
   OSP_AMR_CURRENT,
   OSP_AMR_FINEST,
@@ -307,9 +265,6 @@ typedef enum
 
 // Subdivision modes
 typedef enum
-#if __cplusplus >= 201103L
-    : uint8_t
-#endif
 {
   OSP_SUBDIVISION_NO_BOUNDARY,
   OSP_SUBDIVISION_SMOOTH_BOUNDARY,
