@@ -39,5 +39,12 @@ get a correct raw wrapper from running `c2nim` on the headers.
 To generate the `ospray_raw.nim`, `OSPEnums.nim` and `ospray_util_raw.nim` files, 
 take the corrosponding C header files from the OSPRay source distribution, 
 and apply the ospray-2.1.0-c2nim.patch file.  And then run c2nim on each 
-header, and copy the results to the source, adding the `_raw` suffix to the 
+header.
+
+Right now, c2nim makes the calling convention for function pointer
+declarations to be the standard calling convention? You do need to make a manual 
+edit to `ospray.nim` to change the function call declaration decls to be 
+`{.cdecl.}` to fix this.
+
+After that copy the results to the source, adding the `_raw` suffix to the 
 module names. 
