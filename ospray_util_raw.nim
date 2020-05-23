@@ -2,7 +2,7 @@
 ##  SPDX-License-Identifier: Apache-2.0
 
 import
-  ospray
+  ospray_raw
 
 {.deadCodeElim: on.}
 when defined(windows):

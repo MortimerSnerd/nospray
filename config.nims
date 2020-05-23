@@ -22,3 +22,27 @@ task build, "Builds debug version":
     switch("path", "vendor/ospray-2.1.0/include")
     switch("out", outName)
 
+task buildWrapped, "Builds debug version":
+    var outName : string
+
+    when defined(windows):
+      outName = "wrnostest.exe"
+    else:
+      outName = "wrnostest"
+
+    setCommand "c", "wrapped_nostest"
+    --gc:arc
+
+
+    --listFullPaths
+    --threads:on
+    --threadAnalysis:on
+    --define: debug
+
+    --warnings:on
+    --hints:on
+    --colors:off
+
+    switch("path", "vendor/ospray-2.1.0/include")
+    switch("out", outName)
+

@@ -1,6 +1,6 @@
 # A pretty straight conversion of ospTutorial.c
 import 
-  ospray, ospray_util, strformat
+  ospray_raw, ospray_util_raw, strformat
 
 proc writePPM(fileName: string; size_x, size_y: int; pixels: ptr uint32) = 
   let fh = open(fileName, fmWrite)
