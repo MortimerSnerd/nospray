@@ -1,7 +1,7 @@
 ## Wrapped ospray_raw API that retains and releases Ospray handles 
 ## automatically.
 import
-  ospray_raw, ospray_util_raw, OSPEnums
+  ospray_raw, ospray_util_raw, OSPEnums, strformat, typetraits
 
 export ospray_raw
 
@@ -36,6 +36,46 @@ type
     ## that still call into the library.
     initialized: bool
 
+template declareTypeBoundFunctions(T: typedesc) : untyped = 
+  ## Generates some type bound functions.  Noisy, but necessary since
+  ## we made the handles a shallow type hierarchy.
+  proc `$`*(h: T) : string = 
+    "[" & T.name & " " & repr(cast[pointer](h.hndl)) & "]"
+    
+  proc `=destroy`*(mh: var T) = 
+    if mh.hndl != nil:
+      when defined(loudDestroy):
+        echo "ospRelease " & T.name & " " & repr(cast[pointer](mh.hndl))
+      ospRelease(mh.hndl)
+      mh.hndl = nil
+
+  proc `=`*(a: var T; b: T) = 
+    if a.hndl != b.hndl:
+      `=destroy`(a)
+      a.hndl = b.hndl
+      ospRetain(a.hndl)
+      when defined(loudDestroy):
+        echo "retaining " & T.name & " " &  cast[pointer](a.hndl).repr
+
+  proc `=sink`*(a: var T; b: T) = 
+    `=destroy`(a)
+    a.hndl = b.hndl
+    when defined(loudDestroy):
+      echo "sinking " & T.name & " " &  cast[pointer](a.hndl).repr
+
+declareTypeBoundFunctions(ManagedHandle)
+declareTypeBoundFunctions(Camera)
+declareTypeBoundFunctions(Geometry)
+declareTypeBoundFunctions(Data)
+declareTypeBoundFunctions(Material)
+declareTypeBoundFunctions(GeometricModel)
+declareTypeBoundFunctions(Group)
+declareTypeBoundFunctions(Instance)
+declareTypeBoundFunctions(World)
+declareTypeBoundFunctions(Light)
+declareTypeBoundFunctions(Renderer)
+declareTypeBoundFunctions(FrameBuffer)
+
 proc `=destroy`*(l: var Library) = 
   if l.initialized:
     when defined(loudDestroy):
@@ -47,14 +87,18 @@ proc `=`*(l: var Library; ll: Library) {.error.}
 
 template validHandle*(h: ManagedHandle) : bool = h.hndl != nil
 
-proc `=destroy`*(mh: var ManagedHandle) = 
-  if mh.hndl != nil:
-    when defined(loudDestroy):
-      echo "ospRelease " & repr(cast[pointer](mh.hndl))
-    ospRelease(mh.hndl)
-    mh.hndl = nil
+template mkh(tname: typedesc; hnd0: untyped) : untyped = 
+  let newh = hnd0
+  when defined(loudDestroy):
+    echo "making " & tname.name & " " & cast[pointer](newh).repr
+  tname(hndl: newh)
 
-proc `=`*(a: var ManagedHandle; b: ManagedHandle)  {.error.}
+proc retain*(h: ManagedHandle) = 
+  ## If the handle is valid, bumps it's reference count up so it 
+  ## will not be destroyed when `h` goes out of scope.
+  ## The object the handle refers to will be leaked unless 
+  ## an explicit call to `release()` is made later.
+  ospRetain(h.hndl)
 
 proc set*(h: ManagedHandle; name: string; val: float32) = 
   ## Sets a parameter on an object.  
@@ -89,14 +133,22 @@ proc init*(args: openarray[string]): (OSPError, seq[string], Library) =
   ## Initializes the library.  On success, returns 
   ## (OSP_NO_ERROR, args - any ospray args consumed by the library).
   ## Returns (Some OSPError, undefined) if there was an error.
-  let csArgs = allocCStringArray(args)
-  var numArgs = cint(len(args))
+  # It's expecting C argv, so position 0 is expected to be the 
+  # program name.  
+  var argv = @["program"]
+
+  add(argv, args)
+  let csArgs = allocCStringArray(argv)
+  var numArgs = cint(len(argv))
 
   try:
     let rc = ospInit(addr numArgs, csArgs)
 
     if rc == OSP_NO_ERROR:
-      result = (rc, cstringArrayToSeq(csArgs, numArgs), 
+      var rarr = cstringArrayToSeq(csArgs, numArgs)
+      delete(rarr, 0)
+      csArgs[0] = nil # Don't free our fake param.
+      result = (rc, rarr, 
                 Library(initialized: true))
     else:
       result = (rc, @[], Library())
@@ -106,42 +158,42 @@ proc init*(args: openarray[string]): (OSPError, seq[string], Library) =
 
 
 proc newCamera*(kind: string): Camera = 
-  Camera(hndl: ospNewCamera(kind))
+  mkh(Camera, ospNewCamera(kind))
 
 proc newGeometry*(kind: string) : Geometry = 
-  Geometry(hndl: ospNewGeometry(kind))
+  mkh(Geometry, ospNewGeometry(kind))
 
 proc newSharedData1D*(sharedData: pointer; `type`: OSPDataType; 
                          numItems: uint64_t): Data = 
-  Data(hndl: ospNewSharedData1D(sharedData, `type`, numItems))
+  mkh(Data, ospNewSharedData1D(sharedData, `type`, numItems))
 
 proc newMaterial*(rendererType: string; materialType: cstring): Material = 
-  Material(hndl: ospNewMaterial(rendererType, materialType))
+  mkh(Material, ospNewMaterial(rendererType, materialType))
 
 proc newGeometricModel*(a1: Geometry): GeometricModel = 
-  GeometricModel(hndl: ospNewGeometricModel(cast[OSPGeometry](a1.hndl)))
+  mkh(GeometricModel, ospNewGeometricModel(cast[OSPGeometry](a1.hndl)))
 
 proc newGroup*(): Group = 
-  Group(hndl: ospNewGroup())
+  mkh(Group, ospNewGroup())
 
 proc newInstance*(a1: Group): Instance = 
-  Instance(hndl: ospNewInstance(cast[OSPGroup](a1.hndl)))
+  mkh(Instance, ospNewInstance(cast[OSPGroup](a1.hndl)))
 
 proc newWorld*() : World = 
-  World(hndl: ospNewWorld())
+  mkh(World, ospNewWorld())
 
 proc newLight*(kind: string) : Light = 
-  Light(hndl: ospNewLight(kind))
+  mkh(Light, ospNewLight(kind))
 
 proc getBounds*(obj: World|Instance|Group) : OSPBounds = 
   ospGetBounds(obj.hndl)
 
 proc newRenderer*(kind: string) : Renderer = 
-  Renderer(hndl: ospNewRenderer(kind))
+  mkh(Renderer, ospNewRenderer(kind))
 
 proc newFrameBuffer*(size_x: cint; size_y: cint; format: OSPFrameBufferFormat;
                      frameBufferChannels: uint32_t): FrameBuffer  = 
-  FrameBuffer(hndl: ospNewFrameBuffer(size_x, size_y, format, 
+  mkh(FrameBuffer, ospNewFrameBuffer(size_x, size_y, format, 
                                       frameBufferChannels))
 
 proc resetAccumulation*(a1: FrameBuffer) = 
