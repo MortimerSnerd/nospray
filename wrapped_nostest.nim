@@ -3,7 +3,7 @@
 import 
   ospray, ospray_util_raw, strformat
 
-proc writePPM(fileName: string; size_x, size_y: int; pixels: ptr uint32) = 
+proc writePPM(fileName: string; size_x, size_y: int; pixels: ptr UncheckedArray[uint32]) = 
   let fh = open(fileName, fmWrite)
 
   try:
@@ -11,7 +11,7 @@ proc writePPM(fileName: string; size_x, size_y: int; pixels: ptr uint32) =
     var outrow = newSeq[byte](3 * size_x)
 
     for y in 0..<size_y:
-      let inrow = cast[ptr UncheckedArray[byte]](cast[ptr byte](cast[int](pixels) + (size_y - 1 - y) * size_x * 4))
+      let inrow = cast[ptr UncheckedArray[byte]](addr pixels[(size_y - 1 - y) * size_x])
 
       for x in 0..<size_x:
         outrow[3*x + 0] = inrow[4*x + 0]
@@ -165,5 +165,6 @@ proc go() =
   writePPM("accumulatedFrame.ppm", imgSize_x, imgSize_y, fb2)
   unmapFrameBuffer(fb2, framebuffer)
  
+  echo "really done, about to clean up"
 
 go()

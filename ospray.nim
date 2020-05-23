@@ -154,10 +154,10 @@ proc renderFrameBlocking*(a1: FrameBuffer; a2: Renderer; a3: Camera;
                          cast[OSPCamera](a3.hndl),
                          cast[OSPWorld](a4.hndl))
 
-proc mapFrameBuffer*[T](fb: FrameBuffer; channel: OSPFrameBufferChannel): ptr T = 
-  cast[ptr T](ospMapFrameBuffer(cast[OSPFrameBuffer](fb.hndl), 
-                                channel))
+proc mapFrameBuffer*[T](fb: FrameBuffer; channel: OSPFrameBufferChannel): ptr UncheckedArray[T] = 
+  cast[ptr UncheckedArray[T]](ospMapFrameBuffer(cast[OSPFrameBuffer](fb.hndl), 
+                                                channel))
 
 
-proc unmapFrameBuffer*[T](mapped: ptr T; fb: FrameBuffer) = 
+proc unmapFrameBuffer*[T](mapped: ptr UncheckedArray[T]; fb: FrameBuffer) = 
   ospUnmapFrameBuffer(mapped, cast[OSPFrameBuffer](fb.hndl))
