@@ -92,7 +92,7 @@ proc ospDeviceRemoveParam*(a1: OSPDevice; id: cstring) {.
 ##  Status message callback function type
 
 type
-  OSPStatusFunc* = proc (messageText: cstring)
+  OSPStatusFunc* = proc (messageText: cstring) {.cdecl.}
 
 ##  Set callback for given Device to call when a status message occurs
 
@@ -101,7 +101,7 @@ proc ospDeviceSetStatusFunc*(a1: OSPDevice; a2: OSPStatusFunc) {.
 ##  Error message callback function type
 
 type
-  OSPErrorFunc* = proc (a1: OSPError; errorDetails: cstring)
+  OSPErrorFunc* = proc (a1: OSPError; errorDetails: cstring) {.cdecl.}
 
 ##  Set callback for given Device to call when an error occurs
 
