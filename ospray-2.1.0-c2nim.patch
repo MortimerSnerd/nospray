@@ -1,0 +1,344 @@
+--- a/ospray.h	2020-05-21 14:40:40.050597200 -0400
++++ b/ospray.h	2020-05-21 20:55:43.023495800 -0400
+@@ -3,44 +3,54 @@
+ 
+ #pragma once
+ 
+-#ifndef NULL
+-#if __cplusplus >= 201103L
+-#define NULL nullptr
+-#else
+-#define NULL 0
+-#endif
+-#endif
+-
+-#include <stdint.h>
+-#include <sys/types.h>
+-
+-#include "OSPEnums.h"
+-
+-#ifdef _WIN32
+-#ifdef ospray_EXPORTS
+-#define OSPRAY_INTERFACE __declspec(dllexport)
+-#else
+-#define OSPRAY_INTERFACE __declspec(dllimport)
+-#endif
+-#else
+-#define OSPRAY_INTERFACE
+-#endif
+-
+-#ifdef __GNUC__
+-#define OSP_DEPRECATED __attribute__((deprecated))
+-#elif defined(_MSC_VER)
+-#define OSP_DEPRECATED __declspec(deprecated)
+-#else
+-#define OSP_DEPRECATED
+-#endif
++#ifndef C2NIM
++    #ifndef NULL
++    #if __cplusplus >= 201103L
++    #define NULL nullptr
++    #else
++    #define NULL 0
++    #endif
++    #endif
++
++    #include <stdint.h>
++    #include <sys/types.h>
++    #include "OSPEnums.h"
++
++    #ifdef _WIN32
++    #ifdef ospray_EXPORTS
++    #define OSPRAY_INTERFACE __declspec(dllexport)
++    #else
++    #define OSPRAY_INTERFACE __declspec(dllimport)
++    #endif
++    #else
++    #define OSPRAY_INTERFACE
++    #endif
++
++    #ifdef __GNUC__
++        #define OSP_DEPRECATED __attribute__((deprecated))
++    #elif defined(_MSC_VER)
++        #define OSP_DEPRECATED __declspec(deprecated)
++    #else
++        #define OSP_DEPRECATED
++    #endif
+ 
+-#ifdef __cplusplus
++    #ifdef __cplusplus
+ // C++ DOES support default initializers
+-#define OSP_DEFAULT_VAL(a) = a
+-#else
++        #define OSP_DEFAULT_VAL(a) = a
++    #else
+ /* C99 does NOT support default initializers, so we use this macro
+    to define them away */
+-#define OSP_DEFAULT_VAL(a)
++        #define OSP_DEFAULT_VAL(a)
++    #endif
++#else
++    #dynlib ospraydll
++    #if defined(windows)
++      #define ospraydll "ospray.dll"
++    #else
++      #define ospraydll "libospray.so"
++    #endif
++    #def OSP_DEFAULT_VAL(a)
++    #def OSPRAY_INTERFACE 
+ #endif
+ 
+ // Give OSPRay handle types a concrete defintion to enable C++ type checking
+@@ -131,10 +141,60 @@
+    OSPGeometry can still be passed to a function that expects a
+    OSPObject, etc. */
+ typedef _OSPManagedObject *OSPManagedObject, *OSPCamera, *OSPData,
+-    *OSPFrameBuffer, *OSPFuture, *OSPGeometricModel, *OSPGeometry, *OSPGroup,
+-    *OSPImageOperation, *OSPInstance, *OSPLight, *OSPMaterial, *OSPObject,
+-    *OSPRenderer, *OSPTexture, *OSPTransferFunction, *OSPVolume,
+-    *OSPVolumetricModel, *OSPWorld;
++*OSPFrameBuffer, *OSPFuture, *OSPGeometricModel, *OSPGeometry, *OSPGroup,
++*OSPImageOperation, *OSPInstance, *OSPLight, *OSPMaterial, *OSPObject,
++*OSPRenderer, *OSPTexture, *OSPTransferFunction, *OSPVolume,
++*OSPVolumetricModel, *OSPWorld;
++#endif
++
++#ifdef C2NIM
++#@
++import OSPEnums
++export OSPEnums
++type
++    OSPDevice* = distinct pointer
++    OSPObjectOpaque = object of RootObj
++    OSPObject* = ptr OSPObjectOpaque
++    OSPCameraOpaque = object of OSPObjectOpaque
++    OSPCamera* = ptr OSPCameraOpaque
++    OSPDataOpaque = object of OSPObjectOpaque
++    OSPData* = ptr OSPDataOpaque
++    OSPFrameBufferOpaque = object of OSPObjectOpaque
++    OSPFrameBuffer* = ptr OSPFrameBufferOpaque
++    OSPFutureOpaque = object of OSPObjectOpaque
++    OSPFuture* = ptr OSPFutureOpaque
++    OSPGeometricModelOpaque = object of OSPObjectOpaque
++    OSPGeometricModel* = ptr OSPGeometricModelOpaque
++    OSPGeometryOpaque = object of OSPObjectOpaque
++    OSPGeometry* = ptr OSPGeometryOpaque
++    OSPGroupOpaque = object of OSPObjectOpaque
++    OSPGroup* = ptr OSPGroupOpaque
++    OSPImageOperationOpaque = object of OSPObjectOpaque
++    OSPImageOperation* = ptr OSPImageOperationOpaque
++    OSPInstanceOpaque = object of OSPObjectOpaque
++    OSPInstance* = ptr OSPInstanceOpaque
++    OSPLightOpaque = object of OSPObjectOpaque
++    OSPLight* = ptr OSPLightOpaque
++    OSPMaterialOpaque = object of OSPObjectOpaque
++    OSPMaterial* = ptr OSPMaterialOpaque
++    OSPRendererOpaque = object of OSPObjectOpaque
++    OSPRenderer* = ptr OSPRendererOpaque
++    OSPTextureOpaque = object of OSPObjectOpaque
++    OSPTexture* = ptr OSPTextureOpaque
++    OSPTransferFunctionOpaque = object of OSPObjectOpaque
++    OSPTransferFunction* = ptr OSPTransferFunctionOpaque
++    OSPVolumeOpaque = object of OSPObjectOpaque
++    OSPVolume* = ptr OSPVolumeOpaque
++    OSPVolumetricModelOpaque = object of OSPObjectOpaque
++    OSPVolumetricModel* = ptr OSPVolumetricModelOpaque
++    OSPWorldOpaque = object of OSPObjectOpaque
++    OSPWorld* = ptr OSPWorldOpaque
++
++    int64_t* = int64
++    uint64_t* = uint64
++    uint32_t* = uint32
++    int32_t* = int32
++@#
+ #endif
+ 
+ #ifdef __cplusplus
+--- a/ospray_util.h	2020-05-21 14:40:40.069545900 -0400
++++ b/ospray_util.h	2020-05-21 20:00:13.622511500 -0400
+@@ -5,6 +5,17 @@
+ 
+ #include "ospray.h"
+ 
++#ifdef C2NIM
++    #dynlib ospraydll
++    #if defined(windows)
++      #define ospraydll "ospray.dll"
++    #else
++      #define ospraydll "libospray.so"
++    #endif
++    #def OSP_DEFAULT_VAL(a)
++    #def OSPRAY_INTERFACE 
++#endif
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+--- a/OSPEnums.h	2020-05-21 14:40:40.041649000 -0400
++++ b/OSPEnums.h	2020-05-22 22:29:16.523644200 -0400
+@@ -8,9 +8,6 @@
+ // Log levels which can be set on a driver via "logLevel" parameter or
+ // "OSPRAY_LOG_LEVEL" environment variable
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   OSP_LOG_DEBUG = 1,
+   OSP_LOG_INFO = 2,
+@@ -21,9 +18,6 @@
+ 
+ // enum representing different device properties
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   OSP_DEVICE_VERSION = 0,
+   OSP_DEVICE_VERSION_MAJOR = 1,
+@@ -34,9 +28,6 @@
+ 
+ // An enum type that represensts the different data types represented in OSPRay
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   // Object reference type.
+   OSP_DEVICE = 100,
+@@ -149,9 +140,6 @@
+ 
+ // OSPRay format constants for Texture creation
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   OSP_TEXTURE_RGBA8,
+   OSP_TEXTURE_SRGBA,
+@@ -174,9 +162,6 @@
+ 
+ // Filter modes that can be set on 'texture2d' type OSPTexture
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   OSP_TEXTURE_FILTER_BILINEAR = 0, // default bilinear interpolation
+   OSP_TEXTURE_FILTER_NEAREST // use nearest-neighbor interpolation
+@@ -184,9 +169,6 @@
+ 
+ // Error codes returned by various API and callback functions
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   OSP_NO_ERROR = 0, // No error has been recorded
+   OSP_UNKNOWN_ERROR = 1, // An unknown error has occurred
+@@ -203,9 +185,6 @@
+ 
+ // OSPRay format constants for Frame Buffer creation
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   OSP_FB_NONE, // framebuffer will not be mapped by application
+   OSP_FB_RGBA8, // one dword per pixel: rgb+alpha, each one byte
+@@ -215,10 +194,18 @@
+ } OSPFrameBufferFormat;
+ 
+ // OSPRay channel constants for Frame Buffer (can be OR'ed together)
++#ifdef C2NIM
++  #@
++type OSPFrameBufferChannel* = int32
++@#
++  #define OSP_FB_COLOR (1 << 0)
++  #define OSP_FB_DEPTH  (1 << 1)
++  #define OSP_FB_ACCUM  (1 << 2)
++  #define OSP_FB_VARIANCE  (1 << 3)
++  #define OSP_FB_NORMAL  (1 << 4)
++  #define OSP_FB_ALBEDO  (1 << 5)
++#else
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   OSP_FB_COLOR = (1 << 0),
+   OSP_FB_DEPTH = (1 << 1),
+@@ -227,12 +214,10 @@
+   OSP_FB_NORMAL = (1 << 4), // in world-space
+   OSP_FB_ALBEDO = (1 << 5)
+ } OSPFrameBufferChannel;
++#endif
+ 
+ // OSPRay events which can be waited on via ospWait()
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint32_t
+-#endif
+ {
+   OSP_NONE_FINISHED = 0,
+   OSP_WORLD_RENDERED = 10,
+@@ -244,9 +229,6 @@
+ // OSPRay cell types definition for unstructured volumes, values are set to
+ // match VTK
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint8_t
+-#endif
+ {
+   OSP_TETRAHEDRON = 10,
+   OSP_HEXAHEDRON = 12,
+@@ -257,9 +239,6 @@
+ 
+ // OSPRay PerspectiveCamera stereo image modes
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint8_t
+-#endif
+ {
+   OSP_STEREO_NONE,
+   OSP_STEREO_LEFT,
+@@ -270,9 +249,6 @@
+ 
+ // OSPRay Curves geometry types
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint8_t
+-#endif
+ {
+   OSP_ROUND,
+   OSP_FLAT,
+@@ -282,9 +258,6 @@
+ 
+ // OSPRay Curves geometry bases
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint8_t
+-#endif
+ {
+   OSP_LINEAR,
+   OSP_BEZIER,
+@@ -296,9 +269,6 @@
+ 
+ // AMR Volume rendering methods
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint8_t
+-#endif
+ {
+   OSP_AMR_CURRENT,
+   OSP_AMR_FINEST,
+@@ -307,9 +277,6 @@
+ 
+ // Subdivision modes
+ typedef enum
+-#if __cplusplus >= 201103L
+-    : uint8_t
+-#endif
+ {
+   OSP_SUBDIVISION_NO_BOUNDARY,
+   OSP_SUBDIVISION_SMOOTH_BOUNDARY,

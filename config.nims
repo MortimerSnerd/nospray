@@ -19,10 +19,10 @@ task build, "Builds debug version":
     --hints:on
     --colors:off
 
-    switch("path", "vendor/ospray-2.1.0/include")
+    switch("path", "src")
     switch("out", outName)
 
-task buildWrapped, "Builds debug version":
+task buildWrapped, "Builds debug version of the wrapped test module":
     var outName : string
 
     when defined(windows):
@@ -43,6 +43,6 @@ task buildWrapped, "Builds debug version":
     --hints:on
     --colors:off
 
-    switch("path", "vendor/ospray-2.1.0/include")
+    switch("path", "src")
     switch("out", outName)
 
