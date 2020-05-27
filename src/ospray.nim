@@ -27,6 +27,13 @@ type
   Renderer* = object of ManagedHandle
   FrameBuffer* = object of ManagedHandle
 
+  #TODO one bad part of this hierarchy is that if you create
+  # a seq of Instances, you can't pass this as a shared array
+  # of instances to OSPRay (since there's extra data in the 
+  # Instance, thanks to inheritance).  Can work around
+  # this with a seq[OSPObject], but that is ugly.  May need to rethink
+  # the hierarchy.
+
   Library* = object
     ## Object that scopes the initialization and 
     ## shutdown for the entire library. Makes things
@@ -35,6 +42,8 @@ type
     ## so your call won't be ordered before destructors
     ## that still call into the library.
     initialized: bool
+
+converter toOSPObject*(mh: ManagedHandle) : OSPObject = mh.hndl
 
 template declareTypeBoundFunctions(T: typedesc) : untyped = 
   ## Generates some type bound functions.  Noisy, but necessary since
@@ -58,10 +67,11 @@ template declareTypeBoundFunctions(T: typedesc) : untyped =
         echo "retaining " & T.name & " " &  cast[pointer](a.hndl).repr
 
   proc `=sink`*(a: var T; b: T) = 
-    `=destroy`(a)
-    a.hndl = b.hndl
-    when defined(loudDestroy):
-      echo "sinking " & T.name & " " &  cast[pointer](a.hndl).repr
+    if a.hndl != b.hndl:
+      `=destroy`(a)
+      a.hndl = b.hndl
+      when defined(loudDestroy):
+        echo "sinking " & T.name & " " &  cast[pointer](a.hndl).repr
 
 declareTypeBoundFunctions(ManagedHandle)
 declareTypeBoundFunctions(Camera)
@@ -108,6 +118,9 @@ proc set*(h: ManagedHandle; name: string; val: float32) =
 template setVec3f*(h: ManagedHandle; name: string; val: ptr float32) = 
   assert validHandle(h)
   ospSetParam(h.hndl, name, OSP_VEC3f, val)
+
+template set*(h: ManagedHandle; name: string; kind: OSPDataType; val: ptr float32) = 
+  ospSetParam(h.hndl, name, kind, val)
 
 proc commit*(h: ManagedHandle) = 
   assert validHandle(h)
