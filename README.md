@@ -4,6 +4,14 @@ Work in progress, this is not complete in any way.  The high level API
 only has enough functions implemented to port `ospTutorial.c` at the 
 moment.
 
+## Jun 8, 2020
+There may be a bug in how the handles are being used, in a test
+project, I've had some instances where things released that 
+should have been retained, which leads OSPRAY to enigmatically
+crash.  It may also just be me using one of the API functions
+incorrectly, as I haven't spotted anything incorrect when I 
+turn on destroy and sink tracing.
+
 ## Notes
 1) `ospray_raw` is module that exposes the raw C API.  The only noticable difference 
    is that the handle types are arranged so a OSPHandle can match any type

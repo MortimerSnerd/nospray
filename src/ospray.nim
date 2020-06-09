@@ -13,6 +13,20 @@ type
     ## on the handles.
     hndl: OSPObject
 
+  Vec3f* = array[3, float32]
+    ## Simple typedef for Vec3f.  Not required to use this,  
+    ## you can send anything that's 3 consecutive xyz floats 
+    ## when passing Vec3f's to OSPRay.
+    ## ie:  
+    ##      something.set("position", OSP_VEC3F,  addr someSeq[n+10])
+
+  Affine3f* = array[12, float32]
+    ## OSP_AFFINE3F - essentially a 4x3 matrix for
+    ## rotation, scaling and transformation, in 
+    ## column major order.  You can use any matrix
+    ## data structure with the same ordering in it's 
+    ## place, this is for documentation.   
+
   # 1 level hierarchy of handles - we don't use inheritance 
   # because that would change the memory layout in a way that
   # would make it so you could not pass a seq[ManagedObject]
@@ -40,6 +54,8 @@ type
   Renderer* = object
     inner: ManagedHandle
   FrameBuffer* = object
+    inner: ManagedHandle
+  Texture* = object
     inner: ManagedHandle
 
   #TODO outside of ManagedHandle, there should be a separate
@@ -71,7 +87,7 @@ template declareTypeBoundFunctions(T: typedesc) : untyped =
       if mh.hndl != nil:
         when defined(loudDestroy):
           echo "ospRelease " & T.name & " " & repr(cast[pointer](mh.hndl))
-        ospRelease(mh.hndl)
+        #ospRelease(mh.hndl)
         mh.hndl = nil
 
     proc `=`*(a: var T; b: T) =
@@ -104,6 +120,7 @@ declareTypeBoundFunctions(World)
 declareTypeBoundFunctions(Light)
 declareTypeBoundFunctions(Renderer)
 declareTypeBoundFunctions(FrameBuffer)
+declareTypeBoundFunctions(Texture)
 
 proc `=destroy`*(l: var Library) = 
   if l.initialized:
@@ -133,6 +150,14 @@ proc retain*(h: ManagedHandle) =
   ## an explicit call to `release()` is made later.
   ospRetain(h.hndl)
 
+proc set*(h: ManagedHandle; name: string; val: cint) = 
+  var vv = val
+  assert validHandle(h)
+  ospSetParam(h.hndl, name, OSP_INT, addr vv)
+
+template set*(h: ManagedHandle; name: string; val: OSPTextureFormat) = 
+  h.set(name, cint(val))
+
 proc set*(h: ManagedHandle; name: string; val: float32) = 
   ## Sets a parameter on an object.  
   assert validHandle(h)
@@ -144,6 +169,9 @@ template setVec3f*(h: ManagedHandle; name: string; val: ptr float32) =
 
 template set*(h: ManagedHandle; name: string; kind: OSPDataType; val: ptr float32) = 
   ospSetParam(h.hndl, name, kind, val)
+
+template set*(h: ManagedHandle; name: string; tr: var Affine3f) = 
+  ospSetParam(h.hndl, name, OSP_AFFINE3F, addr tr)
 
 proc commit*(h: ManagedHandle) = 
   assert validHandle(h)
@@ -203,6 +231,10 @@ proc newSharedData1D*(sharedData: pointer; `type`: OSPDataType;
                          numItems: uint64_t): Data = 
   mkh(Data, ospNewSharedData1D(sharedData, `type`, numItems))
 
+proc newSharedData2D*(sharedData: pointer; `type`: OSPDataType; 
+                         numItems0, numItems1: uint64_t): Data = 
+  mkh(Data, ospNewSharedData2D(sharedData, `type`, numItems0, numItems1))
+
 proc newMaterial*(rendererType: string; materialType: cstring): Material = 
   mkh(Material, ospNewMaterial(rendererType, materialType))
 
@@ -249,3 +281,6 @@ proc mapFrameBuffer*[T](fb: FrameBuffer; channel: OSPFrameBufferChannel): ptr Un
 
 proc unmapFrameBuffer*[T](mapped: ptr UncheckedArray[T]; fb: FrameBuffer) = 
   ospUnmapFrameBuffer(mapped, cast[OSPFrameBuffer](fb.handle))
+
+proc newTexture*(kind: string) : Texture = 
+  mkh(Texture, ospNewTexture(kind))
